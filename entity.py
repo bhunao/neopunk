@@ -1,20 +1,51 @@
-from typing import List, Tuple
 import pygame
 from dataclasses import dataclass
 
 
 @dataclass
+class Pos:
+    x: int = 0
+    y: int = 0
+
+
+@dataclass
+class Speed:
+    x: int = 0
+    y: int = 0
+
+
+@dataclass
 class Entity:
-    pos: Tuple[int] = (0, 0)
-    speed: Tuple[int] = (0, 0)
+    pos: Pos = Pos()
+    speed: Speed = Speed()
 
     def draw(self, screen, rect=None):
         color = (255, 0, 0)
         if rect is None:
-            rect = pygame.Rect(self.pos[0], self.pos[1], 100, 100)
+            rect = (self.pos.x, self.pos.y, 25, 25)
         pygame.draw.rect(screen, color, rect)
 
     def update(self):
-        new_x = self.pos[0] * self.speed[0]
-        new_y = self.pos[1] * self.speed[1]
-        self.pos = new_x, new_y
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            self.pos.x -= self.speed.x
+        if keys[pygame.K_RIGHT]:
+            self.pos.x += self.speed.x
+        if keys[pygame.K_UP]:
+            self.pos.y -= self.speed.y
+        if keys[pygame.K_DOWN]:
+            self.pos.y += self.speed.y
+
+
+@dataclass
+class StaticEntity:
+    pos: Pos = Pos()
+
+    def draw(self, screen, rect=None):
+        color = (255, 255, 0)
+        if rect is None:
+            rect = (self.pos.x, self.pos.y, 150, 25)
+        pygame.draw.rect(screen, color, rect)
+
+    def update(self):
+        pass
