@@ -1,5 +1,5 @@
 import pygame
-from entity import Entity, Pos, Speed, StaticEntity
+from entity import Entity, StaticEntity
 
 
 pygame.init()
@@ -8,8 +8,8 @@ screen = pygame.display.set_mode((800, 600))
 # screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
 running = True
-one = Entity(speed=Speed(1, 1))
-static_entity = StaticEntity(Pos(50, 50))
+one = Entity(speedx=1,speedy=1)
+static_entity = StaticEntity()
 
 entities_list = [
         one,
