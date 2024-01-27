@@ -1,36 +1,9 @@
-import logging
-from typing import List
 import pygame
-from pygame.rect import Rect
-from entity import Entity, MovableEntity, StaticEntity
-
-logger = logging.getLogger(__name__)
+from pygame.sprite import Group
+from pygame import font
 
 
-def keyboard_movement(player: MovableEntity, collidable_enties: List[Entity]):
-    keys = pygame.key.get_pressed()
-    old_x = player.rect.x
-    old_y = player.rect.y
-
-    if keys[pygame.K_LEFT]:
-        player.rect.x -= player.speedx
-    if keys[pygame.K_RIGHT]:
-        player.rect.x += player.speedx
-    if keys[pygame.K_UP]:
-        player.rect.y -= player.speedy
-    if keys[pygame.K_DOWN]:
-        player.rect.y += player.speedy
-    if keys[pygame.K_SPACE] and not player.is_jumping:
-        pass
-
-    for entity in collidable_enties:
-        if entity is player:
-            continue
-        if player.rect.colliderect(entity.rect):
-            player.rect.x = old_x
-            player.rect.y = old_y
-            logger.warn(f"{player=} collided with {entity=}")
-            return
+from entity import Entity, StaticEntity, TileMap, keyboard_movement
 
 
 pygame.init()
@@ -39,31 +12,21 @@ screen = pygame.display.set_mode((800, 600))
 # screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
 running = True
-player = MovableEntity(
-        Rect(150, 150, 30, 30),
-        speedx=1, speedy=1,
-        color=(255, 15, 192))
+font.init()
+FONT = font.Font('freesansbold.ttf', 12)
 
-ground_rect = Rect(0, 575, 800, 5)
-rect_1 = Rect(150, 450, 200, 25)
-rect_2 = Rect(350, 500, 200, 25)
-rect_3 = Rect(650, 375, 200, 25)
+map_dict = {f"{x} 21": "grass" for x in range(800//25)}
+tilemap = TileMap(map_dict)
 
-BLUE = (0, 0, 255)
+px, py = screen.get_rect().center
+player = Entity((255, 0, 0), px, py)
+groups = {
+    "player": Group(),
+    "tilemap": tilemap.group
+}
 
-ground = StaticEntity(ground_rect, color=BLUE)
-plataform_1 = StaticEntity(rect_1, color=BLUE)
-plataform_2 = StaticEntity(rect_2, color=BLUE)
-plataform_3 = StaticEntity(rect_3, color=BLUE)
+groups["player"].add(player)
 
-
-entities_list = [
-    player,
-    ground,
-    plataform_1,
-    plataform_2,
-    plataform_3,
-]
 
 while running:
 
@@ -73,11 +36,25 @@ while running:
 
     screen.fill((0, 0, 0))
 
-    keyboard_movement(player, collidable_enties=entities_list)
-    for entity in entities_list:
-        entity.draw(screen)
-        entity.update()
+    keyboard_movement(player)
+
+    for group_name, group in groups.items():
+        group.draw(screen)
+        group.update()
+
+    text_val = f"{player.velocity=}"
+    text = FONT.render(text_val, True, (255, 255, 255))
+    screen.blit(text, (0, 0))
+
+    text_val = f"{player.rect.topleft=}"
+    text = FONT.render(text_val, True, (255, 255, 255))
+    screen.blit(text, (0, 15))
 
     pygame.display.flip()
+    ppos = tilemap.pos_to_tilepos(player.pos)
+    result = tilemap.check_around(ppos)
+    print("cheked around:", len(tilemap.collide_with(player)))
+    for t in result:
+        tilemap.push_away(player, t)
 
 pygame.quit()
